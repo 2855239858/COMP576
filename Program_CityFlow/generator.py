@@ -3,6 +3,7 @@ import copy
 from config import DIC_AGENTS, DIC_ENVS
 import time
 import sys
+import numpy as np
 from multiprocessing import Process, Pool
 
 class Generator:
@@ -75,7 +76,19 @@ class Generator:
 
 
 
-
+    def compute_len_feature(self):
+        from functools import reduce
+        num_lanes = np.sum(np.array(list(self.dic_traffic_env_conf["LANE_NUM"].values())))
+        len_feature=tuple()
+        for feature_name in self.dic_traffic_env_conf["LIST_STATE_FEATURE"]:
+            if "adjacency" in feature_name:
+                continue
+            elif "phase" in feature_name:
+                len_feature += self.dic_traffic_env_conf["DIC_FEATURE_DIM"]["D_"+feature_name.upper()]
+                # print(self.dic_traffic_env_conf["DIC_FEATURE_DIM"]["D_"+feature_name.upper()])
+            elif feature_name=="lane_num_vehicle":
+                len_feature += (self.dic_traffic_env_conf["DIC_FEATURE_DIM"]["D_"+feature_name.upper()][0]*num_lanes,)
+        return sum(len_feature)
 
 
 

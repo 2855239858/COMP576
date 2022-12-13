@@ -306,6 +306,137 @@ DIC_MAXPRESSURE_AGENT_CONF = {
     700: [53, 53]
 }
 
+###Cenlight configure: Dont use
+DIC_CENLIGHT_AGENT_CONF = {
+    "EP_MAX": 1000,
+    "EP_LEN": 200,
+    "GAMMA": 0.8,
+    "A_LR": 0.0005,
+    "C_LR": 0.0005,
+    "BATCH": 50,
+    "A_UPDATE_STEPS": 10,
+    "C_UPDATE_STEPS": 10,
+
+    "LOSS_FUNCTION": "mean_squared_error",
+    "SEPARATE_MEMORY": False,
+    "NORMAL_FACTOR": 20,
+    "TRAFFIC_FILE": "cross.2phases_rou01_equal_450.xml",
+}
+
+DIC_RNN_CENLIGHT_AGENT_CONF = {
+    "EP_MAX": 1000,
+    "EP_LEN": 200,
+    "GAMMA": 0.8,
+    "A_LR": 0.0005,
+    "C_LR": 0.0005,
+    "BATCH": 50,
+    "A_UPDATE_STEPS": 10,
+    "C_UPDATE_STEPS": 10,
+
+    "LOSS_FUNCTION": "mean_squared_error",
+    "SEPARATE_MEMORY": False,
+    "NORMAL_FACTOR": 20,
+    "TRAFFIC_FILE": "cross.2phases_rou01_equal_450.xml",
+}
+
+DIC_HRC_AGENT_CONF = {
+    "EP_MAX": 100,
+    "EP_LEN": 200,
+    "GAMMA": 0.8,
+    "A_LR": 0.0005,
+    "C_LR": 0.0005,
+    "BATCH": 50,
+    "A_UPDATE_STEPS": 10,
+    "C_UPDATE_STEPS": 10,
+
+    "LOSS_FUNCTION": "mean_squared_error",
+    "SEPARATE_MEMORY": False,
+    "NORMAL_FACTOR": 20,
+    "TRAFFIC_FILE": "cross.2phases_rou01_equal_450.xml",
+
+    "FIXED_TIME":[20 for i in range(48)]
+}
+
+DIC_BI_CENLIGHT_AGENT_CONF = {
+    "EP_MAX": 1000,
+    "EP_LEN": 200,
+    "GAMMA": 0.8,
+    "A_LR": 0.0005,
+    "C_LR": 0.0005,
+    "BATCH": 50,
+    "A_UPDATE_STEPS": 10,
+    "C_UPDATE_STEPS": 10,
+
+    "LOSS_FUNCTION": "mean_squared_error",
+    "SEPARATE_MEMORY": False,
+    "NORMAL_FACTOR": 20,
+    "TRAFFIC_FILE": "cross.2phases_rou01_equal_450.xml",
+}
+
+DIC_DOUBLE_CENLIGHT_AGENT_CONF = {
+    "EP_MAX": 1000,
+    "EP_LEN": 200,
+    "GAMMA": 0.8,
+    "A_LR": 0.0005,
+    "C_LR": 0.0005,
+    "BATCH": 50,
+    "A_UPDATE_STEPS": 10,
+    "C_UPDATE_STEPS": 10,
+
+    "LOSS_FUNCTION": "mean_squared_error",
+    "SEPARATE_MEMORY": False,
+    "NORMAL_FACTOR": 20,
+    "TRAFFIC_FILE": "cross.2phases_rou01_equal_450.xml",
+}
+
+DIC_SINGLE_PPO_AGENT_CONF = {
+    "EP_MAX": 1000,
+    "EP_LEN": 200,
+    "GAMMA": 0.8,
+    "A_LR": 0.00005,
+    "C_LR": 0.00005,
+    "BATCH": 50,
+    "A_UPDATE_STEPS": 10,
+    "C_UPDATE_STEPS": 10,
+
+    "LOSS_FUNCTION": "mean_squared_error",
+    "SEPARATE_MEMORY": False,
+    "NORMAL_FACTOR": 20,
+    "TRAFFIC_FILE": "cross.2phases_rou01_equal_450.xml",
+}
+
+DIC_MULTI_PPO_AGENT_CONF = {
+    "EP_MAX": 1000,
+    "EP_LEN": 200,
+    "GAMMA": 0.8,
+    "A_LR": 0.0005,
+    "C_LR": 0.0005,
+    "BATCH": 50,
+    "A_UPDATE_STEPS": 10,
+    "C_UPDATE_STEPS": 10,
+
+    "LOSS_FUNCTION": "mean_squared_error",
+    "SEPARATE_MEMORY": False,
+    "NORMAL_FACTOR": 20,
+    "TRAFFIC_FILE": "cross.2phases_rou01_equal_450.xml",
+}
+
+DIC_MULTI_PPO_NEIGHBOR_AGENT_CONF = {
+    "EP_MAX": 1000,
+    "EP_LEN": 200,
+    "GAMMA": 0.8,
+    "A_LR": 0.0005,
+    "C_LR": 0.0005,
+    "BATCH": 50,
+    "A_UPDATE_STEPS": 10,
+    "C_UPDATE_STEPS": 10,
+
+    "LOSS_FUNCTION": "mean_squared_error",
+    "SEPARATE_MEMORY": False,
+    "NORMAL_FACTOR": 20,
+    "TRAFFIC_FILE": "cross.2phases_rou01_equal_450.xml",
+}
+
 DIC_COLIGHT_AGENT_CONF = {
     "CNN_layers":[[32,32]],#,[32,32],[32,32],[32,32]],
     "att_regularization":False,

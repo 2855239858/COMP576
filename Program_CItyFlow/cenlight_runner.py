@@ -1,6 +1,6 @@
 import config
 import copy
-from pipeline import Pipeline
+from cenlight_pipeline import cenlight_pipeline
 import os
 import time
 from multiprocessing import Process
@@ -25,16 +25,20 @@ ANON_PHASE_REPRE=[]
 
 def parse_args():
     parser = argparse.ArgumentParser()
-
+    # The file folder to create/log in
+    #Cenlight, RNN_Cenlight, Bi_Cenlight, Double_Cenlight, Single_PPO, 
+    #HRC, Multi_PPO, Multi_PPO_Neighbor
+    name = 'HRC'  
+    
     ###
     #volume -> road_net -> suffix
     #300 -> 6_6 -> 0.3_bi
     #jinan -> 3_4 -> real_2000
-    parser.add_argument("--memo", type=str, default='Lit')#1_3,2_2,3_3,4_4
+    parser.add_argument("--memo", type=str, default=name)#1_3,2_2,3_3,4_4
     parser.add_argument("--env", type=int, default=1) #env=1 means you will run CityFlow
     parser.add_argument("--gui", type=bool, default=False)
-    parser.add_argument("--road_net", type=str, default='4_4')#'1_2') # which road net you are going to run
-    parser.add_argument("--volume", type=str, default='hangzhou')#'300','jinan','hangzhou','newyork
+    parser.add_argument("--road_net", type=str, default='16_3')#'1_2') # which road net you are going to run
+    parser.add_argument("--volume", type=str, default='newyork')#'300','jinan','hangzhou','newyork
     parser.add_argument("--suffix", type=str, default="real")#0.3
 
     global hangzhou_archive
@@ -44,7 +48,7 @@ def parse_args():
     global TOP_K_ADJACENCY_LANE
     TOP_K_ADJACENCY_LANE=5
     global NUM_ROUNDS
-    NUM_ROUNDS=500
+    NUM_ROUNDS=50
     global EARLY_STOP
     EARLY_STOP=False
     global NEIGHBOR
@@ -59,12 +63,12 @@ def parse_args():
     #modify:TOP_K_ADJACENCY in line 154
     global PRETRAIN
     PRETRAIN=False
-    parser.add_argument("--mod", type=str, default='Lit')#SimpleDQN,SimpleDQNOne,GCN,CoLight,Lit
+    parser.add_argument("--mod", type=str, default=name)#SimpleDQN,SimpleDQNOne,GCN,CoLight,Lit,Cenlight
     parser.add_argument("--cnt",type=int, default=3600)#3600
-    parser.add_argument("--gen",type=int, default=3)#4
+    parser.add_argument("--gen",type=int, default=4)#4
 
     parser.add_argument("-all", action="store_true", default=False)
-    parser.add_argument("--workers",type=int, default=6)
+    parser.add_argument("--workers",type=int, default=7)
     parser.add_argument("--onemodel",type=bool, default=False)
 
     parser.add_argument("--visible_gpu", type=str, default="-1")
@@ -124,7 +128,7 @@ def check_all_workers_working(list_cur_p):
     return -1
 
 def pipeline_wrapper(dic_exp_conf, dic_agent_conf, dic_traffic_env_conf, dic_path):
-    ppl = Pipeline(dic_exp_conf=dic_exp_conf, # experiment config
+    ppl = cenlight_pipeline(dic_exp_conf=dic_exp_conf, # experiment config
                    dic_agent_conf=dic_agent_conf, # RL agent config
                    dic_traffic_env_conf=dic_traffic_env_conf, # the simolation configuration
                    dic_path=dic_path # where should I save the logs?
@@ -144,6 +148,7 @@ def main(memo, env, road_net, gui, volume, suffix, mod, cnt, gen, r_all, workers
     NUM_COL = int(road_net.split('_')[0])
     NUM_ROW = int(road_net.split('_')[1])
     num_intersections = NUM_ROW * NUM_COL
+    print('num_intersections:',num_intersections)
 
     ENVIRONMENT = ["sumo", "anon"][env]
 
@@ -200,6 +205,7 @@ def main(memo, env, road_net, gui, volume, suffix, mod, cnt, gen, r_all, workers
 
             "N_LAYER": 2,
             "TRAFFIC_FILE": traffic_file,
+            "AGENT_NAME":memo,
         }
 
         global TOP_K_ADJACENCY
@@ -256,7 +262,7 @@ def main(memo, env, road_net, gui, volume, suffix, mod, cnt, gen, r_all, workers
 
             "LIST_STATE_FEATURE": [
                 "cur_phase",
-                # "time_this_phase",
+                "time_this_phase",
                 # "vehicle_position_img",
                 # "vehicle_speed_img",
                 # "vehicle_acceleration_img",
@@ -389,7 +395,7 @@ def main(memo, env, road_net, gui, volume, suffix, mod, cnt, gen, r_all, workers
                 for i in range(4):
                     dic_traffic_env_conf_extra["LIST_STATE_FEATURE"].append(feature+"_"+str(i))
 
-        if mod in ['CoLight','GCN','SimpleDQNOne']:
+        if mod in ['Multi_PPO_Neighbor']:
             dic_traffic_env_conf_extra["NUM_AGENTS"] = 1
             dic_traffic_env_conf_extra['ONE_MODEL'] = False
             if "adjacency_matrix" not in dic_traffic_env_conf_extra['LIST_STATE_FEATURE'] and \
@@ -437,6 +443,7 @@ def main(memo, env, road_net, gui, volume, suffix, mod, cnt, gen, r_all, workers
                 dic_traffic_env_conf_extra['DIC_FEATURE_DIM']['D_LANE_NUM_VEHICLE_3'] = (4,)
 
 
+        print(traffic_file)
         prefix_intersections = str(road_net)
         dic_path_extra = {
             "PATH_TO_MODEL": os.path.join("model", memo, traffic_file + "_" + time.strftime('%m_%d_%H_%M_%S', time.localtime(time.time()))),
@@ -457,33 +464,11 @@ def main(memo, env, road_net, gui, volume, suffix, mod, cnt, gen, r_all, workers
         # deploy_dic_agent_conf_all = [deploy_dic_agent_conf for i in range(deploy_dic_traffic_env_conf["NUM_AGENTS"])]
 
         deploy_dic_path = merge(config.DIC_PATH, dic_path_extra)
-
-        if multi_process:
-            ppl = Process(target=pipeline_wrapper,
-                          args=(deploy_dic_exp_conf,
-                                deploy_dic_agent_conf,
-                                deploy_dic_traffic_env_conf,
-                                deploy_dic_path))
-            process_list.append(ppl)
-        else:
-            pipeline_wrapper(dic_exp_conf=deploy_dic_exp_conf,
-                             dic_agent_conf=deploy_dic_agent_conf,
-                             dic_traffic_env_conf=deploy_dic_traffic_env_conf,
-                             dic_path=deploy_dic_path)
-
-    if multi_process:
-        for i in range(0, len(process_list), n_workers):
-            i_max = min(len(process_list), i + n_workers)
-            for j in range(i, i_max):
-                print(j)
-                print("start_traffic")
-                process_list[j].start()
-                print("after_traffic")
-            for k in range(i, i_max):
-                print("traffic to join", k)
-                process_list[k].join()
-                print("traffic finish join", k)
-
+        
+    pipeline_wrapper(dic_exp_conf=deploy_dic_exp_conf,
+                        dic_agent_conf=deploy_dic_agent_conf,
+                        dic_traffic_env_conf=deploy_dic_traffic_env_conf,
+                        dic_path=deploy_dic_path)
 
     return memo
 

@@ -242,7 +242,7 @@ def summary_detail_test(memo, total_summary):
         num_of_vehicle_in = []
         num_of_vehicle_out = []
 
-        train_round_dir = os.path.join(records_dir, traffic_file, "test_round")
+        train_round_dir = os.path.join(records_dir, traffic_file, "train_round")
         try:
             round_files = os.listdir(train_round_dir)
         except:

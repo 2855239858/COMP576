@@ -569,7 +569,7 @@ if __name__=='__main__':
         'LEARNING_RATE': 0.001, 
         'SAMPLE_SIZE': 1000, 
         'BATCH_SIZE': 20, 
-        'EPOCHS': 100, 
+        'EPOCHS': 20, 
         'UPDATE_Q_BAR_FREQ': 5, 
         'UPDATE_Q_BAR_EVERY_C_ROUND': False, 
         'GAMMA': 0.8, 

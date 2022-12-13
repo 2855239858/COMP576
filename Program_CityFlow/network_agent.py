@@ -266,10 +266,13 @@ class NetworkAgent(Agent):
             _state = []
             _next_state = []
             for feature_name in self.dic_traffic_env_conf["LIST_STATE_FEATURE"]:
-                _state.append([state[feature_name]])
-                _next_state.append([next_state[feature_name]])
+                if "phase" in feature_name or "adjacency" in feature_name or "pressure" in feature_name:
+                    shape = self.dic_traffic_env_conf["DIC_FEATURE_DIM"]["D_"+feature_name.upper()][0]
+                else:
+                    shape = self.dic_traffic_env_conf["DIC_FEATURE_DIM"]["D_"+feature_name.upper()][0]*self.num_lanes
+                _state.append(np.array(state[feature_name]).reshape([-1, shape]))
+                _next_state.append(np.array(next_state[feature_name]).reshape([-1, shape]))
             target = self.q_network.predict(_state)
-
             next_state_qvalues = self.q_network_bar.predict(_next_state)
 
             if self.dic_agent_conf["LOSS_FUNCTION"] == "mean_squared_error":
@@ -289,7 +292,6 @@ class NetworkAgent(Agent):
     def convert_state_to_input(self, s):
         if self.dic_traffic_env_conf["BINARY_PHASE_EXPANSION"]:
             inputs = []
-            # print(s)
             for feature in self.dic_traffic_env_conf["LIST_STATE_FEATURE"]:
                 if "cur_phase" in feature:
                     inputs.append(np.array([self.dic_traffic_env_conf['PHASE']
