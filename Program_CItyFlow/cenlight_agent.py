@@ -25,7 +25,6 @@ METHOD = [
 #as the second cycle layer's first step's hidden input state.(Ensuring that all actions
 #  decided at each timestep are depanded on all signals' states.)
 class Cenlight(object):
-    #PPO2在PPO上自定义了actor的RNN网络结构，使能够让前一step的输出作为后一step的输入
     #In this class, the only verification is to rewrite the RNN neural network. 
     #The input states of RNN are different too. (For each step of RNN, input states are states of signal and the signal's chosen action.)
 
@@ -91,7 +90,7 @@ class Cenlight(object):
                 except AttributeError:
                     print('\033[1;31m [---COPY PARAMS---] Assign [', p, '] to [', oldp, '] failed \033[0m')
             self.update_oldpi_op = new_params
-            ##调整概率分布的维度，方便获取概率
+            ##Adjust prob dimension
             index = []
             self.pi_resize = tf.reshape(self.pi,[-1,self.a_dim])
             self.oldpi_resize = tf.reshape(self.oldpi,[-1,self.a_dim])
@@ -105,7 +104,7 @@ class Cenlight(object):
                 self.surr,
                 tf.clip_by_value(self.ratio_temp1, 1. - 0.2, 1. + 0.2) * self.tfadv))
             self.atrain_op = tf.train.AdamOptimizer(A_LR).minimize(self.aloss)
-        ##以下为分开计算actor loss的部分
+        ##calculate actor loss
             self.aloss_seperated = -tf.reduce_mean(tf.reshape(tf.minimum(  # clipped surrogate objective
                 self.surr,
                 tf.clip_by_value(self.ratio_temp1, 1. - 0.2, 1. + 0.2) * self.tfadv),[-1,self.num_intersection]),axis = 0)
@@ -138,56 +137,10 @@ class Cenlight(object):
         self.global_counter += 1
 
         self.empty_buffer()
-    
-    # def lstm_cell(self, xt, last_ht, last_ct, name, trainable):
-    #     ### ft = sigmoid(wf*[ht-1, xt] + bf)
-    #     with tf.variable_scope('lstm_ft_' + name, reuse=True):
-    #         wf = tf.get_variable('Wf', [self.hidden_net, self.hidden_net],trainable=trainable, dtype=tf.float32)
-    #         bf = tf.get_variable('Bf', [1,self.hidden_net], initializer=tf.constant_initializer(0.0),trainable=trainable, dtype=tf.float32)
-    #     ### it = sigmoid(wi*[ht-1, xt] + bi)
-    #     with tf.variable_scope('lstm_it_' + name, reuse=True):
-    #         wi = tf.get_variable('Wi', [self.hidden_net, self.hidden_net],trainable=trainable, dtype=tf.float32)
-    #         bi = tf.get_variable('Bi', [1,self.hidden_net], initializer=tf.constant_initializer(0.0),trainable=trainable, dtype=tf.float32)      
-    #     ### _ct =  tanh(wc*[ht-1, xt] + bc)
-    #     with tf.variable_scope('lstm_ct_' + name, reuse=True):
-    #         wc = tf.get_variable('Wc', [self.hidden_net, self.hidden_net],trainable=trainable, dtype=tf.float32)
-    #         bc = tf.get_variable('Bc', [1,self.hidden_net], initializer=tf.constant_initializer(0.0),trainable=trainable, dtype=tf.float32)      
-    #     ### ot = sigmoid(wo*[ht-1, xt] + bo)
-    #     ### ht = ot * tanh(Ct)
-    #     with tf.variable_scope('lstm_ct_' + name, reuse=True):
-    #         wo = tf.get_variable('Wo', [self.hidden_net, self.hidden_net],trainable=trainable, dtype=tf.float32)
-    #         bo = tf.get_variable('Bo', [1,self.hidden_net], initializer=tf.constant_initializer(0.0),trainable=trainable, dtype=tf.float32)      
-
-    #     cur_state = tf.concat([last_ht, xt], 0)
-    #     ft = tf.nn.sigmoid(tf.matmul(cur_state, wf) + bf)
-    #     it = tf.nn.sigmoid(tf.matmul(cur_state, wi) + bi)
-    #     _ct = tf.nn.tanh(tf.matmul(cur_state, wc) + bc)
-    #     Ct = tf.add(tf.multiply(ft, last_ct), tf.multiply(it, _ct))
-    #     ot = tf.nn.sigmoid(tf.matmul(cur_state, wo) + bo)
-    #     ht = tf.multiply(ot, tf.nn.tanh(Ct))
-    #     return ht, Ct
 
         
     def _build_anet_cenlight_lstm(self, name, trainable):
         with tf.variable_scope(name):
-            # ### ft = sigmoid(wf*[ht-1, xt] + bf)
-            # with tf.variable_scope('lstm_ft_' + name):
-            #     wf = tf.get_variable('Wf', [self.hidden_net, self.hidden_net],trainable=trainable, dtype=tf.float32)
-            #     bf = tf.get_variable('Bf', [1,self.hidden_net], initializer=tf.constant_initializer(0.0),trainable=trainable, dtype=tf.float32)
-            # ### it = sigmoid(wi*[ht-1, xt] + bi)
-            # with tf.variable_scope('lstm_it_' + name):
-            #     wi = tf.get_variable('Wi', [self.hidden_net, self.hidden_net],trainable=trainable, dtype=tf.float32)
-            #     bi = tf.get_variable('Bi', [1,self.hidden_net], initializer=tf.constant_initializer(0.0),trainable=trainable, dtype=tf.float32)      
-            # ### _ct =  tanh(wc*[ht-1, xt] + bc)
-            # with tf.variable_scope('lstm_ct_' + name):
-            #     wc = tf.get_variable('Wc', [self.hidden_net, self.hidden_net],trainable=trainable, dtype=tf.float32)
-            #     bc = tf.get_variable('Bc', [1,self.hidden_net], initializer=tf.constant_initializer(0.0),trainable=trainable, dtype=tf.float32)      
-            # ### ot = sigmoid(wo*[ht-1, xt] + bo)
-            # ### ht = ot * tanh(Ct)
-            # with tf.variable_scope('lstm_ct_' + name):
-            #     wo = tf.get_variable('Wo', [self.hidden_net, self.hidden_net],trainable=trainable, dtype=tf.float32)
-            #     bo = tf.get_variable('Bo', [1,self.hidden_net], initializer=tf.constant_initializer(0.0),trainable=trainable, dtype=tf.float32)      
-            
             weights = {
                 'in_{}'.format(name): tf.Variable(tf.random_normal([int(self.s_dim / self.num_intersection), self.hidden_net]), trainable=trainable),
                 'out_{}'.format(name): tf.Variable(tf.random_normal([self.hidden_net, self.a_dim]), trainable=trainable)
@@ -213,18 +166,6 @@ class Cenlight(object):
             # out = tf.stack([pred[k] for k in range(self.num_intersection)], axis=1)
         params = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=name)
         return pred, params
-
-        #     prob_output = []
-        #     last_ht = tf.zeros([1,self.hidden_net], dtype=tf.float32)
-        #     last_ct = tf.zeros([1,self.hidden_net], dtype=tf.float32)
-        #     for j in range(self.num_intersection):
-        #         last_ht, last_ct = self.lstm_cell(input_rnn[:,j,:], last_ht, last_ct, name, trainable)
-        #         prob_output.append(tf.layers.dense(last_ht, self.a_dim, tf.nn.softmax, trainable = trainable, 
-        #             kernel_initializer = tf.random_normal_initializer(0., .01),
-        #             bias_initializer = tf.constant_initializer(0.01)))
-        #     prob_output = tf.stack([prob_output[k] for k in range(self.num_intersection)], axis=1)
-        # params = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=name)
-        # return prob_output, params
 
     def _build_anet_cenlight_rnn(self, name, trainable):
         with tf.variable_scope(name):
